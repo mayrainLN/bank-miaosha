@@ -4,11 +4,15 @@
 
 		<v-stepper v-model="e1" width="" class="mx-auto" style="margin-top: -26px">
 			<v-stepper-header>
-				<v-stepper-step editable :complete="e1 > 1" step="1"> 账号信息 </v-stepper-step>
+				<v-stepper-step editable :complete="e1 > 1" step="1">
+					账号信息
+				</v-stepper-step>
 
 				<v-divider></v-divider>
 
-				<v-stepper-step editable :complete="e1 > 2" step="2"> 身份认证 </v-stepper-step>
+				<v-stepper-step editable :complete="e1 > 2" step="2">
+					身份认证
+				</v-stepper-step>
 
 				<v-divider></v-divider>
 
@@ -34,8 +38,8 @@
 							<v-row style="margin-top: 1vh">
 								<v-col>
 									<v-text-field
-										v-model="regInfo.userName"
-										:rules="rules.userNameRules"
+										v-model="regInfo.username"
+										:rules="rules.usernameRules"
 										label="账号"
 										required
 										clearable
@@ -52,7 +56,7 @@
 										:rules="rules.passwordRules"
 										:type="showpwd ? 'text' : 'password'"
 										label="密码"
-										hint="10~15位数字或字母"
+										hint="6~15位数字或字母"
 										counter
 										clearable
 										@click:append="showpwd = !showpwd"
@@ -64,11 +68,12 @@
 							<v-row>
 								<v-col>
 									<v-text-field
+									v-model="confirmPassword"
 										:append-icon="showpwd ? 'mdi-eye' : 'mdi-eye-off'"
-										:rules="rules.passwordRules"
+										:rules="rules.confirmPasswordRules"
 										:type="showpwd ? 'text' : 'password'"
 										label="确认密码"
-										hint="10~15位数字或字母"
+										hint="6~15位数字或字母"
 										counter
 										clearable
 										@click:append="showpwd = !showpwd"
@@ -267,8 +272,9 @@ export default {
 		date: null,
 		menu: false,
 		regInfo: {
-			userName: "",
+			username: "",
 			password: "",
+			confirmPassword:"",
 			name: "",
 			gender: 1,
 			age: "",
@@ -280,13 +286,19 @@ export default {
 		showpwd: false,
 		valid: true,
 		rules: {
-			userNameRules: [
+			usernameRules: [
 				(v) => !!v || "请输入账号",
-				(v) => (v && v.length <= 15 && v.length >= 10) || "10~15位数字或字母",
+				(v) => (v && v.length <= 15 && v.length >= 6) || "6~15位数字或字母",
 			],
 			passwordRules: [
 				(v) => !!v || "请输入密码",
-				(v) => (v && v.length <= 15 && v.length >= 10) || "10~15位数字或字母",
+				(v) => (v && v.length <= 15 && v.length >= 6) || "6~15位数字或字母",
+			],
+			confirmPasswordRules: [
+				(v) => !!v || "请输入密码",
+				(v) =>
+					this.regInfo.password==this.regInfo.confirmPassword ||
+					"请确认上方密码",
 			],
 			cardNumRules: [
 				(value) => !!value || "必填.",
@@ -311,6 +323,12 @@ export default {
 		text: "",
 		expectedOtp: "133707",
 	}),
+	computed: {
+		passwordConfirmationRule() {
+			return () =>
+				this.regInfo.password === this.regInfo.confirmPassword || "Password must match";
+		},
+	},
 
 	components: {
 		TopBar,
@@ -345,16 +363,12 @@ export default {
 			console.log("注册信息", this.regInfo);
 			await register(this.regInfo)
 				.then((res) => {
-					console.log("注册成功", res.data);
-					if (res.data.code == 10000) {
-						this.$store.commit("changeLoginCondition",{
-							loginCondition:"2"
-						})
-						this.$router
-							.push({
-								path: this.redirect || "/",
-							})
-							.catch(() => {});
+					console.log("res", res);
+					if (res.data.status == 0) {
+						this.$store.commit("changeLoginCondition", {
+							loginCondition: "2",
+						});
+
 						this.$notify({
 							title: `注册成功,请登录`,
 							// message: `${this.loginForm.username}`,
@@ -362,6 +376,12 @@ export default {
 							duration: 3000,
 							offset: 60,
 						});
+
+						// this.$router
+						// 	.push({
+						// 		path: this.redirect || "/",
+						// 	})
+						// 	.catch(() => {});
 					} else {
 						this.$notify.error({
 							title: "注册失败",
@@ -376,11 +396,11 @@ export default {
 						message: "请重试",
 					});
 					console.log("注册失败", err);
-					this.$router
-							.push({
-								path: this.redirect || "/",
-							})
-							.catch(() => {});
+					// this.$router
+					// 	.push({
+					// 		path: this.redirect || "/",
+					// 	})
+					// 	.catch(() => {});
 				});
 		},
 	},

@@ -1,9 +1,10 @@
 import axios from "axios";
 import router from "../router";
+const qs = require('qs');
 
 // 创建axios实例
 const axiosInstance = axios.create({
-	baseURL: "http://47.106.160.24:9857",
+	baseURL: "http://127.0.0.1:3307",
 	timeout: 10 * 1000,
 	headers: {},
 });
@@ -55,8 +56,9 @@ axiosInstance.interceptors.response.use(
 
 export default function request({ url, method, reqData }) {
 	return axiosInstance({
+		headers: { 'content-type': 'application/x-www-form-urlencoded' },
 		url,
 		method,
-		[method.toLowerCase() === "get" ? "params" : "data"]: reqData,
+		[method.toLowerCase() === "get" ? "params" : "data"]: qs.stringify(reqData),
 	});
 }

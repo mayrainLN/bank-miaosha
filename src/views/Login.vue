@@ -18,8 +18,8 @@
 				<v-row style="margin-top: 5vh">
 					<v-col>
 						<v-text-field
-							v-model="loginForm.userName"
-							:rules="userNameRules"
+							v-model="loginForm.username"
+							:rules="usernameRules"
 							label="账号"
 							required
 							clearable
@@ -94,19 +94,19 @@ export default {
 		redirect: "",
 		showpwd: false,
 		loginForm: {
-			userName: "",
+			username: "",
 			password: "",
 		},
 		valid: true,
-		userNameRules: [
+		usernameRules: [
 			(v) => !!v || "请输入账号",
 			(v) =>
-				(v && v.length>= 10&& v.length>= 15) || "10~15数字或字母",
+				(v && v.length>= 6&& v.length<= 15) || "6~15数字或字母",
 		],
 		passWordRules: [
 			(v) => !!v || "请输入密码",
 			(v) =>
-				(v && v.length>= 10&& v.length>= 15) || "10~15数字或字母",
+				(v && v.length>= 6&& v.length<= 15) || "6~15数字或字母",
 		],
 		select: null,
 		checkbox: false,
@@ -129,10 +129,10 @@ export default {
 
 		async Login() {
 			if (
-				this.loginForm.userName.length < 10 ||
-				this.loginForm.userName.length > 15 ||
-				this.loginForm.password.length < 10 ||
-				this.loginForm.password.length > 15
+				this.loginForm.username.length < 6 ||
+				this.loginForm.username.length > 12 ||
+				this.loginForm.password.length < 6 ||
+				this.loginForm.password.length > 12
 			) {
 				this.$notify.error({
 					title: "账号或密码错误",
@@ -141,26 +141,27 @@ export default {
 			}
 			await login(this.loginForm)
 				.then((res) => {
-					if (res.data.code == 10000) {
-						this.$router
-							.push({
-								path: this.redirect || "/",
-							})
-							.catch(() => {});
+					console.log("res",res);
+					if (res.data.status == 0) {
 						this.$notify({
-							title: `欢迎您,`,
+							title: `欢迎您`,
 							// message: `${this.loginForm.username}`,
 							type: "success",
 							duration: 3000,
 							offset: 60,
 						});
-						localStorage.authToken = res.data.data.token;
+						localStorage.authToken = res.data.token;
 						this.$store.commit("saveToken", {
-							authToken: res.data.data.token,
+							authToken: res.data.token,
 						});
 						this.$store.commit("changeLoginCondition", {
 							loginCondition: 3,
 						});
+						// this.$router
+						// 	.push({
+						// 		path: this.redirect || "/",
+						// 	})
+						// 	.catch(() => {});
 					} else {
 						this.$notify.error({
 							title: "登陆失败",

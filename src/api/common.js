@@ -2,8 +2,10 @@ import request from "../utils/request";
 
 export function login(data){
     //request函数返回一个已经配置好了的axios对象
+    console.log("data",data);
     return request({
-        url:"/user/login",
+        // url:"/user/login",
+        url:"/api/login",
         method:"POST",
         reqData:data,
     })
@@ -11,7 +13,8 @@ export function login(data){
 
 export function register(data){
     return request({
-        url:"/user/register",
+        // url:"/user/register",
+        url:"/api/reguser",
         method:"POST",
         reqData:data,
     })
