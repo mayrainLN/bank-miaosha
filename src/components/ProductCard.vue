@@ -1,7 +1,7 @@
 <template>
   <v-card
     :loading="loading"
-    class="mx-auto my-12"
+    class="mx-12 my-8"
     max-width="374"
   >
     <template slot="progress">
@@ -47,13 +47,15 @@
 
     <v-divider class="mx-4"></v-divider>
 
-    <v-card-actions>
+    <v-card-actions class="buyBtn">
       <v-btn
-        color="deep-purple lighten-2"
-        text
+        color="error"
+        dark
+        large 
         @click="reserve"
+        style="width:100%;font-size:20px;font-weight:bolder"
       >
-        Reserve
+        秒       杀
       </v-btn>
     </v-card-actions>
   </v-card>
@@ -88,3 +90,9 @@
     },
   }
 </script>
+
+<style>
+.buyBtn{
+  justify-content: center;
+}
+</style>

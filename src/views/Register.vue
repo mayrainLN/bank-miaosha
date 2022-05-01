@@ -4,15 +4,15 @@
 
 		<v-stepper v-model="e1" width="" class="mx-auto" style="margin-top: -26px">
 			<v-stepper-header>
-				<v-stepper-step :complete="e1 > 1" step="1"> 账号信息 </v-stepper-step>
+				<v-stepper-step editable :complete="e1 > 1" step="1"> 账号信息 </v-stepper-step>
 
 				<v-divider></v-divider>
 
-				<v-stepper-step :complete="e1 > 2" step="2"> 身份认证 </v-stepper-step>
+				<v-stepper-step editable :complete="e1 > 2" step="2"> 身份认证 </v-stepper-step>
 
 				<v-divider></v-divider>
 
-				<v-stepper-step step="3"> 财务认证 </v-stepper-step>
+				<v-stepper-step editable step="3"> 其他信息 </v-stepper-step>
 			</v-stepper-header>
 
 			<v-stepper-items class="mx-auto">
@@ -29,14 +29,12 @@
 							ref="form"
 							v-model="valid"
 							lazy-validation
-							style="width: 80%; "
-							
+							style="width: 80%"
 						>
-							<v-row style="margin-top: 1vh;margin-top:60px">
+							<v-row style="margin-top: 1vh">
 								<v-col>
 									<v-text-field
 										v-model="regInfo.userName"
-										:counter="10"
 										:rules="rules.userNameRules"
 										label="账号"
 										required
@@ -51,10 +49,26 @@
 									<v-text-field
 										v-model="regInfo.password"
 										:append-icon="showpwd ? 'mdi-eye' : 'mdi-eye-off'"
-										:rules="[rules.required, rules.min]"
+										:rules="rules.passwordRules"
 										:type="showpwd ? 'text' : 'password'"
 										label="密码"
-										hint="不少于8位"
+										hint="10~15位数字或字母"
+										counter
+										clearable
+										@click:append="showpwd = !showpwd"
+										outlined
+									></v-text-field>
+								</v-col>
+							</v-row>
+
+							<v-row>
+								<v-col>
+									<v-text-field
+										:append-icon="showpwd ? 'mdi-eye' : 'mdi-eye-off'"
+										:rules="rules.passwordRules"
+										:type="showpwd ? 'text' : 'password'"
+										label="确认密码"
+										hint="10~15位数字或字母"
 										counter
 										clearable
 										@click:append="showpwd = !showpwd"
@@ -86,7 +100,6 @@
 								<v-col>
 									<v-text-field
 										v-model="regInfo.name"
-										:counter="10"
 										:rules="rules.nameRules"
 										label="姓名"
 										required
@@ -100,9 +113,9 @@
 								<v-col>
 									<v-text-field
 										v-model="regInfo.phone"
-										:counter="10"
+										:counter="11"
 										:rules="rules.phoneRules"
-										label="手机号(回车确认)"
+										label="手机号"
 										required
 										clearable
 										outlined
@@ -134,19 +147,15 @@
 									{{ text }}
 								</v-snackbar>
 							</div>
-
-							<v-row>
+							<v-row style="">
 								<v-col>
 									<v-text-field
-										v-model="regInfo.idCard"
-										:append-icon="showpwd ? 'mdi-eye' : 'mdi-eye-off'"
-										:rules="[rules.idCardRules.required, rules.idCardRules.min]"
-										:type="showpwd ? 'text' : 'password'"
-										label="身份证号/护照"
-										hint="不少于8位"
-										counter
+										style="margin: auto"
+										v-model="regInfo.cardNum"
+										:rules="rules.cardNumRules"
+										label="银行卡号"
+										required
 										clearable
-										@click:append="showpwd = !showpwd"
 										outlined
 									></v-text-field>
 								</v-col>
@@ -180,20 +189,50 @@
 						max-width="500"
 						outlined
 					>
-						<v-row style="margin-top: 30%">
-							<v-col>
-								<v-text-field
-									style="width:80%;margin:auto"
-									v-model="regInfo.cardNum"
-									:counter="10"
-									:rules="rules.cardNumRules"
-									label="银行卡号"
-									required
-									clearable
-									outlined
-								></v-text-field>
+						<v-row class="my-15">
+							<div style="margin-left: 140px">
+								<v-radio-group v-model="regInfo.gender" row>
+									<v-radio label="男" value="1"></v-radio>
+									<v-radio
+										label="女"
+										value="2"
+										style="margin-left: 150px"
+									></v-radio>
+								</v-radio-group>
+							</div>
+						</v-row>
+
+						<v-row>
+							<v-col cols="12" sm="18" class="mx-10">
+								<v-slider
+									style="width: 80%"
+									v-model="regInfo.age"
+									color="blue"
+									label="年龄"
+									hint="Be honest"
+									min="1"
+									max="100"
+									thumb-label
+								></v-slider>
 							</v-col>
 						</v-row>
+
+						<v-row>
+							<v-col cols="12" sm="15" class="mx-10">
+								<v-slider
+									thumb-size="70"
+									style="width: 80%; color: black"
+									v-model="regInfo.money"
+									color="blue"
+									label="金额"
+									hint="Be honest"
+									min="10000"
+									max="10000000"
+									thumb-label
+								></v-slider>
+							</v-col>
+						</v-row>
+
 						<div width="100%" class="d-flex justify-space-around mb-6 mt-4">
 							<v-btn color="primary" @click="confirmRegister"> 确认 </v-btn>
 
@@ -221,53 +260,45 @@
 
 <script>
 import TopBar from "../components/TopBar.vue";
+import { register } from "../api/common";
 
 export default {
 	data: () => ({
+		date: null,
+		menu: false,
 		regInfo: {
 			userName: "",
 			password: "",
-			Name: "",
-			phone:"",
-			idCard: "",
+			name: "",
+			gender: 1,
+			age: "",
+			phone: "",
 			cardNum: "",
+			money: "",
 		},
 		e1: 1,
 		showpwd: false,
-		//身份证号校验
-
 		valid: true,
 		rules: {
 			userNameRules: [
 				(v) => !!v || "请输入账号",
-				(v) =>
-					(v && v.length <= 15&&v.length>=9 ) || "9~15位数字或字母",
+				(v) => (v && v.length <= 15 && v.length >= 10) || "10~15位数字或字母",
 			],
-			passWordRules: [
+			passwordRules: [
 				(v) => !!v || "请输入密码",
-				(v) => (v && v.length <= 10) || "密码不少于10位",
+				(v) => (v && v.length <= 15 && v.length >= 10) || "10~15位数字或字母",
 			],
-			// IdCardRules: [
-			// 	(value) =>
-			// 		!value ||
-			// 		value.size < 2000000 ||
-			// 		"Avatar size should be less than 2 MB!",
-			// ],
-			idCardRules: {
-				required: (value) => !!value || "必填.",
-				min: (v) => v.length >= 18 || "18位身份证号",
-				min: (v) => v.length <= 18 || "18位身份证号",
-			},
-			cardNumRules:{
-				required: (value) => !!value || "必填.",
-				min: (v) => v.length >= 19 || "19位储蓄卡卡号",
-				max: (v) => v.length <= 19 || "19位储蓄卡卡号",
-			},
-			nameRules:{
-				required: (value) => !!value || "必填.",
-				min: (v) => v.length >= 2 || "19位储蓄卡卡号",
-				max: (v) => v.length <= 8 || "19位储蓄卡卡号"
-			}
+			cardNumRules: [
+				(value) => !!value || "必填.",
+				(v) => v.length >= 16 || "19位储蓄卡卡号",
+				(v) => v.length <= 19 || "19位储蓄卡卡号",
+			],
+			nameRules: [],
+			phoneRules: [
+				(value) => !!value || "必填.",
+				(v) => v.length >= 11 || "11位手机号",
+				(v) => v.length <= 11 || "11位手机号",
+			],
 		},
 
 		select: null,
@@ -284,7 +315,11 @@ export default {
 	components: {
 		TopBar,
 	},
-
+	watch: {
+		menu(val) {
+			val && setTimeout(() => (this.$refs.picker.activePicker = "YEAR"));
+		},
+	},
 	methods: {
 		validate() {
 			this.$refs.form.validate();
@@ -295,25 +330,58 @@ export default {
 		resetValidation() {
 			this.$refs.form.resetValidation();
 		},
-		loginByPwd() {
-			//
-		},
-		loginByPhone() {
-			//
-		},
-		//手机号验证
-		onFinish(rsp) {
-			this.loading = true;
-			setTimeout(() => {
-				this.loading = false;
-				this.snackbarColor = rsp === this.expectedOtp ? "success" : "warning";
-				this.text = `Processed OTP with "${rsp}" (${this.snackbarColor})`;
-				this.snackbar = true;
-			}, 3500);
-		},
-		confirmRegister() {
-			// ....
-			this.$router.push("Login");
+
+		async confirmRegister() {
+			// for (let v in this.regInfo) {
+			// 	if (this.regInfo[v] == "") {
+			// 		this.$notify.error({
+			// 			title: "信息不全",
+			// 			message: "请重新填写",
+			// 		});
+			// 		return;
+			// 	}
+			// }
+			this.regInfo.gender = this.regInfo.gender == "1" ? 1 : 2;
+			console.log("注册信息", this.regInfo);
+			await register(this.regInfo)
+				.then((res) => {
+					console.log("注册成功", res.data);
+					if (res.data.code == 10000) {
+						this.$store.commit("changeLoginCondition",{
+							loginCondition:"2"
+						})
+						this.$router
+							.push({
+								path: this.redirect || "/",
+							})
+							.catch(() => {});
+						this.$notify({
+							title: `注册成功,请登录`,
+							// message: `${this.loginForm.username}`,
+							type: "success",
+							duration: 3000,
+							offset: 60,
+						});
+					} else {
+						this.$notify.error({
+							title: "注册失败",
+							message: "请重试",
+						});
+						console.log("注册失败", err);
+					}
+				})
+				.catch((err) => {
+					this.$notify.error({
+						title: "注册失败",
+						message: "请重试",
+					});
+					console.log("注册失败", err);
+					this.$router
+							.push({
+								path: this.redirect || "/",
+							})
+							.catch(() => {});
+				});
 		},
 	},
 };

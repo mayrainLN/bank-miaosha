@@ -5,30 +5,32 @@ import router from "../router";
 const axiosInstance = axios.create({
 	baseURL: "http://47.106.160.24:9857",
 	timeout: 10 * 1000,
-	headers:{},
+	headers: {},
 });
 
-let whitelist = ['/login'] // 拦截器白名单，登录时不添加 token
+let whitelist = ["/user/login"]; // 拦截器白名单，登录时不添加 token
 
-   // 拦截器
+// 拦截器
 
 // 1.请求拦截器 全局注入token
-axios.interceptors.request.use(
-	config => {
-	 // 拦截白名单以及添加token
-	 if (whitelist.includes(config.url)) {
-	  return config
-	 } else {
-	  let token = localStorage.token
-	  config.headers.token = token
-	  return config
-	 }
+axiosInstance.interceptors.request.use(
+	(config) => {
+		// console.log("urlconfig", config);
+		// 拦截白名单以及添加token
+		if (whitelist.includes(config.url)) {
+			return config;
+		} else {
+			console.log("localStorage",localStorage);
+			let authToken = localStorage.authToken;
+			config.headers.token ="Bearer"+authToken;
+			console.log("headers.token",config.headers.authToken);
+			return config;
+		}
 	},
-	err => {
-	   return Promise.reject(error);
+	(err) => {
+		return Promise.reject(error);
 	}
-   )
-
+);
 
 // 2.响应拦截器
 axiosInstance.interceptors.response.use(
@@ -51,10 +53,10 @@ axiosInstance.interceptors.response.use(
 	}
 );
 
-export default function request({url,method,reqData}){
-    return axiosInstance({
-        url,
-        method,
-        [method.toLowerCase() === 'get' ? 'params' : 'data']: reqData
-    })
+export default function request({ url, method, reqData }) {
+	return axiosInstance({
+		url,
+		method,
+		[method.toLowerCase() === "get" ? "params" : "data"]: reqData,
+	});
 }

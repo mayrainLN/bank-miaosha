@@ -19,7 +19,6 @@
 					<v-col>
 						<v-text-field
 							v-model="loginForm.userName"
-							:counter="10"
 							:rules="userNameRules"
 							label="账号"
 							required
@@ -34,12 +33,10 @@
 						<v-text-field
 							v-model="loginForm.password"
 							:append-icon="showpwd ? 'mdi-eye' : 'mdi-eye-off'"
-							:rules="[rules.required, rules.min]"
+							:rules="passWordRules"
 							:type="showpwd ? 'text' : 'password'"
 							name="input-10-1"
 							label="密码"
-							hint="不少于8位"
-							counter
 							@click:append="showpwd = !showpwd"
 							outlined
 						></v-text-field>
@@ -93,24 +90,23 @@ import store from "../store";
 
 export default {
 	data: () => ({
+		// LoginCondition: 1, //已点击登陆,位于登陆界面
 		redirect: "",
 		showpwd: false,
 		loginForm: {
 			userName: "",
 			password: "",
 		},
-		rules: {
-			required: (value) => !!value || "必填.",
-			min: (v) => v.length >= 8 || "Min 8 characters",
-		},
 		valid: true,
 		userNameRules: [
 			(v) => !!v || "请输入账号",
-			(v) => (v && v.length <= 10) || "userName must be less than 10 characters",
+			(v) =>
+				(v && v.length>= 10&& v.length>= 15) || "10~15数字或字母",
 		],
 		passWordRules: [
 			(v) => !!v || "请输入密码",
-			(v) => /.+@.+\..+/.test(v) || "E-mail must be valid",
+			(v) =>
+				(v && v.length>= 10&& v.length>= 15) || "10~15数字或字母",
 		],
 		select: null,
 		checkbox: false,
@@ -132,30 +128,45 @@ export default {
 		},
 
 		async Login() {
-			console.log("store",this.$store.loginCondition);
+			if (
+				this.loginForm.userName.length < 10 ||
+				this.loginForm.userName.length > 15 ||
+				this.loginForm.password.length < 10 ||
+				this.loginForm.password.length > 15
+			) {
+				this.$notify.error({
+					title: "账号或密码错误",
+					message: "请重新填写",
+				});
+			}
 			await login(this.loginForm)
 				.then((res) => {
-					console.log("登陆成功", res);
-					this.$router
-						.push({
-							path: this.redirect || "/",
-						})
-						.catch(() => {});
-
-					// store.commit("changeloginCondition", {
-					// 	loginCondition: 3,
-					// });
-					this.$notify({
-						title: `欢迎您,`,
-						// message: `${this.loginForm.username}`,
-						type: "success",
-						duration: 3000,
-						offset: 60,
-					});
-					if(!this.$store.token){
-						!this.$store.commit("saveToken",{
-							token:res.data.data
-						})
+					if (res.data.code == 10000) {
+						this.$router
+							.push({
+								path: this.redirect || "/",
+							})
+							.catch(() => {});
+						this.$notify({
+							title: `欢迎您,`,
+							// message: `${this.loginForm.username}`,
+							type: "success",
+							duration: 3000,
+							offset: 60,
+						});
+						localStorage.authToken = res.data.data.token;
+						this.$store.commit("saveToken", {
+							authToken: res.data.data.token,
+						});
+						this.$store.commit("changeLoginCondition", {
+							loginCondition: 3,
+						});
+					} else {
+						this.$notify.error({
+							title: "登陆失败",
+							message: "请重新登录",
+						});
+						console.log("登陆失败", err);
 					}
 				})
 				.catch((err) => {
